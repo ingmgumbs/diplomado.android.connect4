@@ -1,4 +1,4 @@
-package com.mgumbs.diplomado.connect4.connect4;
+package com.mgumbs.diplomado.connect4;
 
 import org.junit.Test;
 

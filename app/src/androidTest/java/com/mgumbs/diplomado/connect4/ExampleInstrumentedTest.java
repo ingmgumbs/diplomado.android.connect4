@@ -1,4 +1,4 @@
-package com.mgumbs.diplomado.connect4.connect4;
+package com.mgumbs.diplomado.connect4;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.mgumbs.diplomado.connect4.connect4", appContext.getPackageName());
+        assertEquals("com.mgumbs.diplomado.connect4", appContext.getPackageName());
     }
 }
