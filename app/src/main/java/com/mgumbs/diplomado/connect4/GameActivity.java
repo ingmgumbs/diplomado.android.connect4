@@ -2,17 +2,22 @@ package com.mgumbs.diplomado.connect4;
 
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.app.ActionBar;
+import android.graphics.Color;
 import android.graphics.Paint;
-import android.support.constraint.ConstraintLayout;
-import android.support.constraint.ConstraintSet;
+import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 
 import static android.view.View.generateViewId;
+
 
 public class GameActivity extends AppCompatActivity {
 
@@ -22,38 +27,50 @@ public class GameActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
-        drawBoard();
+
+        final TableLayout tl = (TableLayout)findViewById(R.id.tvLay);
+        ViewTreeObserver viewTreeObserver = tl.getViewTreeObserver();
+        if (viewTreeObserver.isAlive()) {
+            viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    if (Build.VERSION.SDK_INT < 16) {
+                        tl.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                    } else {
+                        tl.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    }
+                    int viewWidth = tl.getWidth();
+                    int viewHeight = tl.getHeight();
+                    drawBoard(viewWidth, viewHeight);
+                }
+            });
+        }
+
     }
 
-    private void drawBoard(){
-        ConstraintLayout aLayout = findViewById(R.id.GameLayout);
-        int w = 100;//((View)aLayout).getWidth() / 6;
-        int h = w;
-        int lastid = 0;
-        int topid = R.id.imageView;
-        for (int row = 0; row < 6; row ++){
-            for (int col = 0; col < 7; col ++){
-                ImageView brdPoint = new ImageView(getApplicationContext());
-                brdPoint.setId(generateViewId());
-                ConstraintSet cSet = new ConstraintSet();
-                cSet.clone(aLayout);
-                brdPoint.setImageDrawable(getDrawable(R.drawable.board_point));
-                if (lastid == 0) lastid = aLayout.getId();
-                cSet.connect(lastid,ConstraintSet.RIGHT,aLayout.getId(),ConstraintSet.RIGHT,1);
-                cSet.connect(topid,ConstraintSet.BOTTOM,aLayout.getId(),ConstraintSet.BOTTOM,1);
+    private void drawBoard(int w, int h){
+        TableRow row;// = new TableRow(this.getApplicationContext());
+        TableLayout tlayout = (TableLayout) findViewById(R.id.tvLay);
 
-                ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
-//                params.constrain TOP = R.id.imageView;
-//                params.addRule(RelativeLayout.RIGHT_OF, lastid);
-                brdPoint.setLayoutParams(params);
-                brdPoint.getLayoutParams().height = h;
-                brdPoint.getLayoutParams().width = w;
-                aLayout.addView(brdPoint);
-                cSet.applyTo(aLayout);
-                lastid = brdPoint.getId();
+        //tlayout.setGravity(Gravity.CENTER);
+//        tlayout.setBackgroundResource(R.color.colorPrimary);
 
+        for (int r = 0; r < 6; r ++) {
+            row = new TableRow (this.getApplicationContext());
+            row.setPadding(0,0,0,0);
+            row.setBackgroundColor(Color.GREEN);
+            for (int c = 0; c < 7; c ++){
+               ImageView brdPoint = new ImageView(getApplicationContext());
+               brdPoint.setId(generateViewId());
+               brdPoint.setImageDrawable(getDrawable(R.drawable.board_point));
+               TableRow.LayoutParams params = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
+               brdPoint.setLayoutParams(params);
+               brdPoint.getLayoutParams().width = w / 7;
+               brdPoint.getLayoutParams().height = brdPoint.getLayoutParams().width;
+               row.addView(brdPoint);
             }
-       }
+            tlayout.addView(row);
+        }
     }
 
     public void animate(View view){
