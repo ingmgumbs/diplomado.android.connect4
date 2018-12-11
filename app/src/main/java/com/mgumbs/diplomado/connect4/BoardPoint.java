@@ -3,21 +3,31 @@ package com.mgumbs.diplomado.connect4;
 public class BoardPoint {
     public enum aPlayer {RED,YELLOW,NONE}
 
-    private String Id;
+    private int Id;
     private int Row;
     private int Column;
     private boolean Filled;
     private float x;
     private float y;
-    private float Width;
-    private float Height;
+    private int Width;
+    private int Height;
+    private int CoinId;
+
+    public int getCoinId() {
+        return CoinId;
+    }
+
+    public void setCoinId(int coinId) {
+        CoinId = coinId;
+    }
+
     private aPlayer Player = aPlayer.NONE;
 
-    public String getId() {
+    public int getId() {
         return Id;
     }
 
-    public void setId(String id) {
+    public void setId(int id) {
         Id = id;
     }
 
@@ -62,19 +72,16 @@ public class BoardPoint {
         this.y = y;
     }
 
-    public float getWidth() {
-        return Width;
+    public int getWidth() {return Width;
     }
 
-    public void setWidth(float width) {
-        Width = width;
-    }
+    public void setWidth(int width) {Width = width;}
 
-    public float getHeight() {
+    public int getHeight() {
         return Height;
     }
 
-    public void setHeight(float height) {
+    public void setHeight(int height) {
         Height = height;
     }
 
