@@ -157,6 +157,7 @@ public class GameActivity extends AppCompatActivity {
         cSet.connect(winnerPlayer.getId(), ConstraintSet.TOP, R.id.c4Logo, ConstraintSet.BOTTOM, 0);
 //        cSet.connect(winnerPlayer.getId(), ConstraintSet.LEFT, R.id.c4Logo, ConstraintSet.LEFT, 0);
         cSet.applyTo(tlayout);
+        animate(findViewById(winnerPlayer.getId()));
 
         tlayout.addView(winnerPlayer);
         ImageView winner = new ImageView(this);
@@ -347,7 +348,7 @@ public class GameActivity extends AppCompatActivity {
 
     public void animate(View view){
         float dest = 0;
-        ImageView aniView = (ImageView) findViewById(R.id.c4Logo);
+        ImageView aniView = (ImageView) view;
         dest = 360;
         if (aniView.getRotation() == 360) {
             System.out.println(aniView.getAlpha());
