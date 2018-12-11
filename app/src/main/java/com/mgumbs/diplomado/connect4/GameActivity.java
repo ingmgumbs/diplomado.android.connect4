@@ -2,6 +2,7 @@ package com.mgumbs.diplomado.connect4;
 
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.content.Context;
 import android.graphics.Paint;
 import android.os.Build;
 import android.support.constraint.ConstraintLayout;
@@ -143,23 +144,29 @@ public class GameActivity extends AppCompatActivity {
         winnerPlayer.setId(generateViewId());
         winnerPlayer.setImageDrawable(getDrawable(getWinnerCoin()));
 
-//        ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
-//        winnerPlayer.setLayoutParams(params);
+        ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
+        winnerPlayer.setLayoutParams(params);
 //        winnerPlayer.getLayoutParams().width = (int) (coinWidth * 1.5);
 //        winnerPlayer.getLayoutParams().height = (int) (coinheight * 1.5);
-//        winnerPlayer.setX(100);
-//        winnerPlayer.setY(100);
+        winnerPlayer.setX(0);
+        winnerPlayer.setY(0);
         ConstraintSet cSet = new ConstraintSet();
         cSet.clone(tlayout);
+        tlayout.addView(winnerPlayer);
+
+
+//        float density = ((Context) this).getResources().getDisplayMetrics().density;
+
+        cSet.connect(winnerPlayer.getId(), ConstraintSet.TOP, R.id.c4Logo, ConstraintSet.BOTTOM, 0);
+        cSet.connect(winnerPlayer.getId(), ConstraintSet.LEFT, R.id.c4Logo, ConstraintSet.LEFT, 0);
+
         cSet.constrainHeight(winnerPlayer.getId(), (int) (coinheight * 1.5));
         cSet.constrainWidth(winnerPlayer.getId(), (int) (coinWidth * 1.5));
-        cSet.centerHorizontally(winnerPlayer.getId(), R.id.GameLayout);
-        cSet.connect(winnerPlayer.getId(), ConstraintSet.TOP, R.id.c4Logo, ConstraintSet.BOTTOM, 0);
-//        cSet.connect(winnerPlayer.getId(), ConstraintSet.LEFT, R.id.c4Logo, ConstraintSet.LEFT, 0);
         cSet.applyTo(tlayout);
+
         animate(findViewById(winnerPlayer.getId()));
 
-        tlayout.addView(winnerPlayer);
+
         ImageView winner = new ImageView(this);
         winner.setImageDrawable(getDrawable(R.drawable.win));
 
@@ -356,7 +363,7 @@ public class GameActivity extends AppCompatActivity {
         }
         ObjectAnimator animation1 = ObjectAnimator.ofFloat(aniView,
                 "rotation", dest);
-        animation1.setDuration(2000);
+        animation1.setDuration(2500);
         animation1.start();
 
 /////
@@ -380,18 +387,18 @@ public class GameActivity extends AppCompatActivity {
 //////////////
 
 
-        ObjectAnimator fadeOut = ObjectAnimator.ofFloat(aniView, "alpha",
-                0f);
-        fadeOut.setDuration(2000);
-        ObjectAnimator mover = ObjectAnimator.ofFloat(aniView,
-                "translationY", -500f, ((View)view.getParent()).getHeight()-view.getHeight());
-        mover.setDuration(900);
-        ObjectAnimator fadeIn = ObjectAnimator.ofFloat(aniView, "alpha",
-                0f, 1f);
-        fadeIn.setDuration(2000);
-        AnimatorSet animatorSet = new AnimatorSet();
-
-        animatorSet.play(mover).with(fadeIn).after(fadeOut);
-        animatorSet.start();
+//        ObjectAnimator fadeOut = ObjectAnimator.ofFloat(aniView, "alpha",
+//                0f);
+//        fadeOut.setDuration(2000);
+//        ObjectAnimator mover = ObjectAnimator.ofFloat(aniView,
+//                "translationY", -500f, ((View)view.getParent()).getHeight()-view.getHeight());
+//        mover.setDuration(900);
+//        ObjectAnimator fadeIn = ObjectAnimator.ofFloat(aniView, "alpha",
+//                0f, 1f);
+//        fadeIn.setDuration(2000);
+//        AnimatorSet animatorSet = new AnimatorSet();
+//
+//        animatorSet.play(mover).with(fadeIn).after(fadeOut);
+//        animatorSet.start();
     }
 }
