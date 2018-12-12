@@ -57,11 +57,11 @@ public class GameActivity extends AppCompatActivity {
                     viewHeight = tl.getHeight();
                     coinWidth = viewWidth / 8;
                     coinheight = viewWidth / 7;
+                    drawBoard(viewWidth, viewHeight);
                 }
             });
         }
 
-        drawBoard(viewWidth, viewHeight);
 
     }
 
