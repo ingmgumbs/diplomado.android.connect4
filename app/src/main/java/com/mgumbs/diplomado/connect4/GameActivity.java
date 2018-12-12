@@ -2,8 +2,8 @@ package com.mgumbs.diplomado.connect4;
 
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
-import android.content.Context;
 import android.graphics.Paint;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
@@ -16,7 +16,7 @@ import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
-
+import android.graphics.drawable.Drawable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,7 +52,7 @@ public class GameActivity extends AppCompatActivity {
                     int viewWidth = tl.getWidth();
                     int viewHeight = tl.getHeight();
                     coinWidth = viewWidth / 8;
-                    coinheight = viewWidth;
+                    coinheight = viewWidth / 7;
                     drawBoard(viewWidth, viewHeight);
                 }
             });
@@ -139,40 +139,43 @@ public class GameActivity extends AppCompatActivity {
     }
 
     public void playwinner(){
+
+//        USED TO ADD A BORDER TO THE IMAGE
+//        GradientDrawable border = new GradientDrawable();
+//        border.setColor(0xFFFFFFFF); //white background
+//        border.setStroke(1, 0xFF000000); //black border with full opacity
+
         ConstraintLayout tlayout =  findViewById(R.id.GameLayout);
         ImageView winnerPlayer = new ImageView(this);
         winnerPlayer.setId(generateViewId());
         winnerPlayer.setImageDrawable(getDrawable(getWinnerCoin()));
+//        USED TO ADD A BORDER TO THE IMAGE
+//        winnerPlayer.setBackground(border);
 
-        ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
-        winnerPlayer.setLayoutParams(params);
-//        winnerPlayer.getLayoutParams().width = (int) (coinWidth * 1.5);
-//        winnerPlayer.getLayoutParams().height = (int) (coinheight * 1.5);
-        winnerPlayer.setX(0);
-        winnerPlayer.setY(0);
         ConstraintSet cSet = new ConstraintSet();
         cSet.clone(tlayout);
+
         tlayout.addView(winnerPlayer);
-
-
-//        float density = ((Context) this).getResources().getDisplayMetrics().density;
 
         cSet.connect(winnerPlayer.getId(), ConstraintSet.TOP, R.id.c4Logo, ConstraintSet.BOTTOM, 0);
         cSet.connect(winnerPlayer.getId(), ConstraintSet.LEFT, R.id.c4Logo, ConstraintSet.LEFT, 0);
-
         cSet.constrainHeight(winnerPlayer.getId(), (int) (coinheight * 1.5));
         cSet.constrainWidth(winnerPlayer.getId(), (int) (coinWidth * 1.5));
-        cSet.applyTo(tlayout);
 
-        animate(findViewById(winnerPlayer.getId()));
-
+//        cSet.applyTo(tlayout);
 
         ImageView winner = new ImageView(this);
+        winner.setId(generateViewId());
         winner.setImageDrawable(getDrawable(R.drawable.win));
 
-//        params = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
-//        winner.setLayoutParams(params);
-        winner.setX(winnerPlayer.getX() + winnerPlayer.getLayoutParams().width + 5);
+        tlayout.addView(winner);
+        cSet.connect(winner.getId(), ConstraintSet.TOP, R.id.c4Logo, ConstraintSet.BOTTOM, 0);
+        cSet.connect(winner.getId(), ConstraintSet.LEFT, winnerPlayer.getId(), ConstraintSet.RIGHT, 0);
+        cSet.constrainHeight(winner.getId(), 300);
+        cSet.constrainWidth(winner.getId(), 800);
+
+        cSet.applyTo(tlayout);
+        animate(findViewById(winnerPlayer.getId()));
 //        winnerPlayer.setY(100);
 //        tlayout.addView(winner);
 
