@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Connect4</string>
+    <string name="txtReset">Reset</string>
 </resources>

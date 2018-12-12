@@ -3,6 +3,7 @@ package com.mgumbs.diplomado.connect4;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.graphics.Paint;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.support.constraint.ConstraintLayout;
@@ -31,12 +32,15 @@ public class GameActivity extends AppCompatActivity {
     private boolean winner = false;
     private int coinheight = 0;
     private int coinWidth = 0;
+    private int viewWidth = 0;
+    private int viewHeight = 0;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
+
 
         final TableLayout tl = (TableLayout)findViewById(R.id.tvLay);
         ViewTreeObserver viewTreeObserver = tl.getViewTreeObserver();
@@ -49,14 +53,15 @@ public class GameActivity extends AppCompatActivity {
                     } else {
                         tl.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                     }
-                    int viewWidth = tl.getWidth();
-                    int viewHeight = tl.getHeight();
+                    viewWidth = tl.getWidth();
+                    viewHeight = tl.getHeight();
                     coinWidth = viewWidth / 8;
                     coinheight = viewWidth / 7;
-                    drawBoard(viewWidth, viewHeight);
                 }
             });
         }
+
+        drawBoard(viewWidth, viewHeight);
 
     }
 
@@ -107,6 +112,20 @@ public class GameActivity extends AppCompatActivity {
             }
             tlayout.addView(row);
         }
+    }
+
+    public void looseCoin(BoardPoint aPoint, int speed){
+        int outside = findViewById(R.id.GameLayout).getHeight() + 200;
+        ImageView aCoin = findViewById(aPoint.getCoinId());
+        ObjectAnimator mover = ObjectAnimator.ofFloat(aCoin, "translationY", aCoin.getY(), outside);
+        mover.setDuration(speed);
+        mover.start();
+        /*Drawable adrawable = aCoin.getDrawable();
+        aCoin.setImageDrawable(null);
+        if (adrawable instanceof BitmapDrawable){
+            BitmapDrawable abitmap = (BitmapDrawable) adrawable;
+            abitmap.getBitmap().recycle();
+        }*/
     }
 
     public void dropCoin(BoardPoint toPoint, int speed){
@@ -181,58 +200,83 @@ public class GameActivity extends AppCompatActivity {
 
 
     }
+
+
+    public void setWinnerSequence(List<Integer> sequence){
+        for (Integer id : sequence){
+            ((ImageView) findViewById(id)).setImageDrawable(getDrawable(getWinnerCoin()));
+        }
+
+    }
+
+    private class PlayersCount {
+        int RedCount = 0;
+        int YellowCount = 0;
+    }
+
+    public void validateSequence(BoardPoint aPoint,  PlayersCount playersCount, List<Integer> sequencelist){
+        switch (aPoint.getPlayer()) {
+            case NONE:
+                playersCount.RedCount = 0;
+                playersCount.YellowCount = 0;
+                break;
+            case RED:
+                playersCount.RedCount ++;
+                if (playersCount.YellowCount > 0) {
+                    playersCount.YellowCount = 0;
+                    sequencelist.clear();
+                } // if
+                sequencelist.add(aPoint.getCoinId());
+                break;
+            case YELLOW:
+                playersCount.YellowCount ++;
+                if (playersCount.RedCount > 0) {
+                    playersCount.RedCount = 0;
+                    sequencelist.clear();
+                } // if
+                sequencelist.add(aPoint.getCoinId());
+        } // switch
+    }
+
     public boolean isWinner() {
-        int redcount = 0;
-        int yellowcount = 0;
+        PlayersCount playersCount = new PlayersCount();
+        List<Integer> winnerSequence = new ArrayList<>();
 
         // by row
         for (int r = 6; r >= 0; r --){
+            playersCount.RedCount = 0;
+            playersCount.YellowCount = 0;
+            winnerSequence.clear();
             for (int c = 0; c < 7; c ++){
                 for (BoardPoint aPoint : Board) {
                     if (aPoint.getRow() == r && aPoint.getColumn() == c) {
-                        switch (aPoint.getPlayer()) {
-                            case NONE:
-                                redcount = 0;
-                                yellowcount = 0;
-                                break;
-                            case RED:
-                                redcount++;
-                                yellowcount = 0;
-                                break;
-                            case YELLOW:
-                                yellowcount++;
-                                redcount = 0;
-                        } // switch
+                        validateSequence(aPoint, playersCount, winnerSequence);
                     } // if
                 } // for aPoint
-                winner = (redcount >= 4 || yellowcount >= 4);
-                if (winner) return (winner);
+                winner = (playersCount.RedCount >= 4 || playersCount.YellowCount >= 4);
+                if (winner) {
+                    setWinnerSequence(winnerSequence);
+                    return (winner);
+                } // if
             } // for c
         } // for r
 
         // by column
-        // by row
         for (int c = 0; c < 7; c ++){
+            playersCount.RedCount = 0;
+            playersCount.YellowCount = 0;
+            winnerSequence.clear();
             for (int r = 6; r >= 0; r --) {
                 for (BoardPoint aPoint : Board) {
                     if (aPoint.getRow() == r && aPoint.getColumn() == c) {
-                        switch (aPoint.getPlayer()) {
-                            case NONE:
-                                redcount = 0;
-                                yellowcount = 0;
-                                break;
-                            case RED:
-                                redcount++;
-                                yellowcount = 0;
-                                break;
-                            case YELLOW:
-                                yellowcount++;
-                                redcount = 0;
-                        } // switch
+                        validateSequence(aPoint, playersCount, winnerSequence);
                     } // if
                 } // for aPoint
-                winner = (redcount >= 4 || yellowcount >= 4);
-                if (winner) return (winner);
+                winner = (playersCount.RedCount >= 4 || playersCount.YellowCount >= 4);
+                if (winner) {
+                    setWinnerSequence(winnerSequence);
+                    return (winner);
+                }
             } // for r
         } // for c
 
@@ -240,53 +284,44 @@ public class GameActivity extends AppCompatActivity {
         int n = 7;
         for (int slice = 0; slice < 2 * n - 1; ++slice) {
            int z = (slice < n) ? 0 : slice - n + 1;
+            playersCount.RedCount = 0;
+            playersCount.YellowCount = 0;
+            winnerSequence.clear();
             for (int j = z; j <= slice - z; ++j) {
                 for (BoardPoint aPoint : Board){
                     if (aPoint.getRow() == (slice - j) &&  aPoint.getColumn() == (j)){
-                        switch (aPoint.getPlayer()) {
-                            case NONE:
-                                redcount = 0;
-                                yellowcount = 0;
-                                break;
-                            case RED:
-                                redcount++;
-                                yellowcount = 0;
-                                break;
-                            case YELLOW:
-                                yellowcount++;
-                                redcount = 0;
-                        } // switch
-                    }
-                }
-                winner = (redcount >= 4 || yellowcount >= 4);
-                if (winner) return (winner);
-            }
-        }
+                        validateSequence(aPoint, playersCount, winnerSequence);
+                    } // if
+                } // for boardpoint
+                winner = (playersCount.RedCount >= 4 || playersCount.YellowCount >= 4);
+                if (winner) {
+                    setWinnerSequence(winnerSequence);
+                    return (winner);
+                } // if
+            }// for j
+        } // for slice
+
         // diagonally - left
-//        for (int slice = 0; slice < 2 * n - 1; ++slice) {
-//            int z = (slice < n) ? 0 : slice - n + 1;
-//            for (int j = z; j <= slice - z; ++j) {
-//                for (BoardPoint aPoint : Board){
-//                    if (aPoint.getRow() == ((n-1) - slice - j) &&  aPoint.getColumn() == (j)){
-//                        switch (aPoint.getPlayer()) {
-//                            case NONE:
-//                                redcount = 0;
-//                                yellowcount = 0;
-//                                break;
-//                            case RED:
-//                                redcount++;
-//                                yellowcount = 0;
-//                                break;
-//                            case YELLOW:
-//                                yellowcount++;
-//                                redcount = 0;
-//                        } // switch
-//                    }
-//                }
-//                winner = (redcount >= 4 || yellowcount >= 4);
-//                if (winner) return (winner);
-//            }
-//        }
+
+        for (int slice = 0; slice < 2 * n - 1; ++slice) {
+            int z = (slice < n) ? 0 : slice - n + 1;
+            playersCount.RedCount = 0;
+            playersCount.YellowCount = 0;
+            winnerSequence.clear();
+            for (int j = z; j <= slice - z; ++j) {
+                for (BoardPoint aPoint : Board){
+                    if (aPoint.getRow() == j && aPoint.getColumn() == ((n-1) - (slice - j))){
+                        validateSequence(aPoint, playersCount, winnerSequence);
+                    } // if
+                } // for boardpoint
+                winner = (playersCount.RedCount >= 4 || playersCount.YellowCount >= 4);
+                if (winner) {
+                    setWinnerSequence(winnerSequence);
+                    return (winner);
+                } // if
+            }// for j
+        } // for slice
+
         return winner;
     }
 
@@ -302,6 +337,18 @@ public class GameActivity extends AppCompatActivity {
     }
 
 
+    public void doReset(View view){
+        BoardPoint lostPoint = new BoardPoint();
+        for (BoardPoint aPoint : this.Board){
+            if (aPoint.isFilled()){
+                looseCoin(aPoint,500);
+                aPoint.setFilled(false);
+                aPoint.setCoinId(0);
+            }
+        }
+//        Board.clear();
+        winner = false;
+    }
     public void hitPoint(View view){
         if (winner) return;
         for (BoardPoint aPoint : this.Board) {
