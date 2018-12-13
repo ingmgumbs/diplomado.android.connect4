@@ -2,12 +2,19 @@ package com.mgumbs.diplomado.connect4;
 
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.GradientDrawable;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Build;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -18,6 +25,8 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.graphics.drawable.Drawable;
+import android.widget.Toast;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +39,8 @@ public class GameActivity extends AppCompatActivity {
     private List<BoardPoint> Board;
     private BoardPoint.aPlayer turn = BoardPoint.aPlayer.NONE;
     private boolean winner = false;
+    private int winnerplayercoin = 0;
+    private int winnernotification = 0;
     private int coinheight = 0;
     private int coinWidth = 0;
     private int viewWidth = 0;
@@ -41,8 +52,14 @@ public class GameActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
+        /* do this in onCreate */
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+        mAccel = 0.00f;
+        mAccelCurrent = SensorManager.GRAVITY_EARTH;
+        mAccelLast = SensorManager.GRAVITY_EARTH;
 
-        final TableLayout tl = (TableLayout)findViewById(R.id.tvLay);
+        final TableLayout tl = findViewById(R.id.tvLay);
         ViewTreeObserver viewTreeObserver = tl.getViewTreeObserver();
         if (viewTreeObserver.isAlive()) {
             viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -66,12 +83,11 @@ public class GameActivity extends AppCompatActivity {
     }
 
     private void drawBoard(int w, int h){
-        TableRow row;// = new TableRow(this.getApplicationContext());
-        TableLayout tlayout = (TableLayout) findViewById(R.id.tvLay);
+        TableRow row;
+        TableLayout tlayout = findViewById(R.id.tvLay);
 
 
-        this.Board = new ArrayList<BoardPoint>();
-        //tlayout.setGravity(Gravity.CENTER);
+        this.Board = new ArrayList<>();
 
         for (int r = 0; r < 6; r ++) {
             row = new TableRow (this.getApplicationContext());
@@ -105,10 +121,6 @@ public class GameActivity extends AppCompatActivity {
                 aPoint.setHeight(brdPoint.getLayoutParams().height);
 
                 this.Board.add(aPoint);
-
-               TextView tv = new TextView(this);
-               tv.setText(r + "-" + c);
-               //row.addView(tv);
             }
             tlayout.addView(row);
         }
@@ -120,12 +132,6 @@ public class GameActivity extends AppCompatActivity {
         ObjectAnimator mover = ObjectAnimator.ofFloat(aCoin, "translationY", aCoin.getY(), outside);
         mover.setDuration(speed);
         mover.start();
-        /*Drawable adrawable = aCoin.getDrawable();
-        aCoin.setImageDrawable(null);
-        if (adrawable instanceof BitmapDrawable){
-            BitmapDrawable abitmap = (BitmapDrawable) adrawable;
-            abitmap.getBitmap().recycle();
-        }*/
     }
 
     public void dropCoin(BoardPoint toPoint, int speed){
@@ -147,9 +153,9 @@ public class GameActivity extends AppCompatActivity {
 
         DisplayMetrics dm = new DisplayMetrics();
         this.getWindowManager().getDefaultDisplay().getMetrics(dm);
-        int topOffset = dm.heightPixels - findViewById(R.id.GameLayout).getMeasuredHeight();
-
         ConstraintLayout tlayout =  findViewById(R.id.GameLayout);
+        int topOffset = dm.heightPixels - tlayout.getMeasuredHeight();
+
         tlayout.addView(aCoin, 1);
 
         ObjectAnimator mover = ObjectAnimator.ofFloat(aCoin, "translationY", 0f, location[1]-topOffset);
@@ -167,6 +173,7 @@ public class GameActivity extends AppCompatActivity {
         ConstraintLayout tlayout =  findViewById(R.id.GameLayout);
         ImageView winnerPlayer = new ImageView(this);
         winnerPlayer.setId(generateViewId());
+        winnerplayercoin = winnerPlayer.getId();
         winnerPlayer.setImageDrawable(getDrawable(getWinnerCoin()));
 //        USED TO ADD A BORDER TO THE IMAGE
 //        winnerPlayer.setBackground(border);
@@ -181,10 +188,9 @@ public class GameActivity extends AppCompatActivity {
         cSet.constrainHeight(winnerPlayer.getId(), (int) (coinheight * 1.5));
         cSet.constrainWidth(winnerPlayer.getId(), (int) (coinWidth * 1.5));
 
-//        cSet.applyTo(tlayout);
-
         ImageView winner = new ImageView(this);
         winner.setId(generateViewId());
+        winnernotification = winner.getId();
         winner.setImageDrawable(getDrawable(R.drawable.win));
 
         tlayout.addView(winner);
@@ -195,10 +201,6 @@ public class GameActivity extends AppCompatActivity {
 
         cSet.applyTo(tlayout);
         animate(findViewById(winnerPlayer.getId()));
-//        winnerPlayer.setY(100);
-//        tlayout.addView(winner);
-
-
     }
 
 
@@ -337,18 +339,49 @@ public class GameActivity extends AppCompatActivity {
     }
 
 
-    public void doReset(View view){
-        BoardPoint lostPoint = new BoardPoint();
+    public void resetActivate(View view){
+        if (!winner){
+            new AlertDialog.Builder(this)
+                    .setTitle("Confirm Reset")
+                    .setMessage("Do you really want to reset the game?")
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int whichButton) {
+                            doReset();
+                        }})
+                    .setNegativeButton(android.R.string.no, null).show();
+        }
+        else {doReset();}
+
+    }
+
+    public void doReset(){
+        Toast.makeText(this, "Reset Board in Progress...", Toast.LENGTH_SHORT).show();
+
         for (BoardPoint aPoint : this.Board){
             if (aPoint.isFilled()){
-                looseCoin(aPoint,500);
+                looseCoin(aPoint,700);
                 aPoint.setFilled(false);
                 aPoint.setCoinId(0);
             }
         }
-//        Board.clear();
+
         winner = false;
+
+
+        findViewById(R.id.c4Logo).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                recreate();
+            }
+        }, 500);
+
+//        findViewById(R.id.tvLay).requestLayout();
+        //drawBoard(viewWidth, viewHeight);
+
+
     }
+
     public void hitPoint(View view){
         if (winner) return;
         for (BoardPoint aPoint : this.Board) {
@@ -404,7 +437,7 @@ public class GameActivity extends AppCompatActivity {
     }
 
     public void animate(View view){
-        float dest = 0;
+        float dest;
         ImageView aniView = (ImageView) view;
         dest = 360;
         if (aniView.getRotation() == 360) {
@@ -450,5 +483,45 @@ public class GameActivity extends AppCompatActivity {
 //
 //        animatorSet.play(mover).with(fadeIn).after(fadeOut);
 //        animatorSet.start();
+    }
+
+    /* put this into your activity class */
+    private SensorManager mSensorManager;
+    private float mAccel; // acceleration apart from gravity
+    private float mAccelCurrent; // current acceleration including gravity
+    private float mAccelLast; // last acceleration including gravity
+
+    private final SensorEventListener mSensorListener = new SensorEventListener() {
+
+        public void onSensorChanged(SensorEvent se) {
+            float x = se.values[0];
+            float y = se.values[1];
+            float z = se.values[2];
+            mAccelLast = mAccelCurrent;
+            mAccelCurrent = (float) Math.sqrt((double) (x*x + y*y + z*z));
+            float delta = mAccelCurrent - mAccelLast;
+            mAccel = mAccel * 0.9f + delta; // perform low-cut filter
+
+            if (mAccel > 12) {
+                Toast toast = Toast.makeText(getApplicationContext(), "Device has shaken.", Toast.LENGTH_SHORT);
+                toast.show();
+                resetActivate(findViewById(R.id.GameLayout));
+            }
+        }
+
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        }
+    };
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    @Override
+    protected void onPause() {
+        mSensorManager.unregisterListener(mSensorListener);
+        super.onPause();
     }
 }

@@ -46,7 +46,7 @@
         android:layout_height="57dp"
         android:layout_marginTop="8dp"
         android:contentDescription="@string/txtReset"
-        android:onClick="doReset"
+        android:onClick="resetActivate"
         app:layout_constraintStart_toEndOf="@+id/c4Logo"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/reset" />
